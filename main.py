@@ -5,20 +5,21 @@ def cls():
     os.system('cls' if os.name=='nt' else 'clear')
 
 game = Battleships()
-print("Client or Server?")
+server = Connect()
+while server.connection_established == False:
+    print("Client or Server?")
+    c_o_s = input()
+    if c_o_s[0].lower() == 'c':
+        server.role = 'client'
+        client = server.set_up()
+        game.player = 2
+        cls()
 
-c_o_s = input()
-if c_o_s[0].lower() == 'c':
-    client = Connect()
-    client.client()
-    game.player = 2
-    cls()
-
-if c_o_s[0].lower() == 's':
-    server = Connect()
-    server.server()
-    game.player = 1
-    cls()
+    if c_o_s[0].lower() == 's':
+        server.role = 'server'
+        server.set_up()
+        game.player = 1
+        cls()
 
 game.draw()
 print("How would you like to place your ships?: (M)anual or (A)utomatic")
