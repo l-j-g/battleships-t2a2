@@ -1,8 +1,9 @@
-import string
 import random
 import numpy as np
 import pdb
-class Battleships():
+import socket
+
+class Battleships:
     def __init__(self) -> None:
         self.row_size = 8 #number of rows
         self.col_size = 8 #number of columns
@@ -40,6 +41,7 @@ class Battleships():
                     element = ' x'
                     print(element, end="")
             print("")   
+        return
 
     def place_ships(self,ship):
         direction = 'horizontal' if random.randint(0, 1) == 0 else 'vertical'
@@ -62,8 +64,52 @@ class Battleships():
             self.board[start_point['row']:start_point['row']+ship,start_point['col']] = 1
                                 
         print(f"Ship Placed at Row: {start_point['row']+1}, Column: {start_point['col']+1}, Direction: {direction}, Length: {ship}")
+        return
             
+class Connect:
+    def __init__(self, address = "127.0.0.1", port = 65432):
+        
+        self.address = address
+        self.port = 65432
 
+    def server(self):
+        # Create Socket: 
+        server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM) #
 
+        # because sever need to bind and listen
+        server_socket.bind((self.address, self.port))
+        server_socket.listen()
+        print("Listening on 127.0.0.1...")
 
+        # once the client requests, we need to accept it: 
+        connection, address = server_socket.accept()
+        connection_established = True
+        print("Connection Established")
 
+        while True:
+            # receive some data
+            data = connection.recv(1024)
+
+            #if it's blank, break the loop
+            if not data:
+                break
+            print(repr(data))
+            connection.sendall(data.upper())
+        server_socket.close()
+
+    def client(self):
+        # create socket 
+        client_socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+
+        # client connects to a listening sever 
+        client_socket.connect(("127.0.0.1", 65432))
+
+        message_to_send = "Test"
+
+        # send the message
+        client_socket.sendall(bytes(message_to_send, "utf-8"))
+
+        # get a response 
+        received_message = client_socket.recv(1024)
+
+        print(repr(received_message))
