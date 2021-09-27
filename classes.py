@@ -1,6 +1,7 @@
 import string
 import random
 import numpy as np
+import pdb
 class Battleships():
     def __init__(self) -> None:
         self.row_size = 8 #number of rows
@@ -11,8 +12,7 @@ class Battleships():
         # self.min_ship_size = 1
         # self.num_turns = 39
 
-        self.board = np.zeroes(col_size, row_size)
-
+        self.board = np.zeros((self.col_size, self.row_size))
 
 
         self.ships = {
@@ -21,31 +21,48 @@ class Battleships():
             "cruiser" : 3,
             "submarine" : 3,
             "destroyer" : 2
-
         }
 
+
     def draw(self):
-        board = [[0] * self.col_size for x in range(self.row_size)]
-        board_display = [["~"] * self.col_size for x in range(self.row_size)]
 
-        print("\n  " + " ".join(str(x) for x in range(1, self.col_size + 1))) # Column Coodinates (Numbers)
-        for row in range(self.row_size):
-            print(str(row + 1) + " " + " ".join(str(c) for c in board_display[row]))
-        print()
+        print("  " +" ".join(str(x) for x in range(1, self.col_size + 1))) # Column Coodinates (Numbers)
 
-    def place_ships(self):
-        for length in self.ships.values():
+        count = 1
+        for row in self.board:
+            print(str(count), end = "" )
+            count = count + 1
+            for element in row:
+                if element == 0:
+                    element = ' ~'
+                    print(element,end="")
+                if element == 1:
+                    element = ' x'
+                    print(element, end="")
+            print("")   
 
-            direction = 'horizontal' if random.randint(0, 1) == 0 else 'vertical'
-            if direction == 'horizontal':
-                pass
-'''                 if length <= self.col_size:
-                    for r in range (self.row_size):
-                        for r in range (col_size - length + 1):
-                            if 1 not in [board[r][c:c+size]:
-                                locations.append({'row' : r, 'col': c}) '''
-                        
-                    
+    def place_ships(self,ship):
+        direction = 'horizontal' if random.randint(0, 1) == 0 else 'vertical'
+        locations = []
+        if direction == 'horizontal':
+
+            for r in range (self.row_size):
+                for c in range (self.col_size - ship + 1):
+                    if 1 not in self.board[r][c:c+ship]:
+                        locations.append({'row' : r, 'col': c})
+            start_point = locations[random.randint(0,len(locations)-1)]                    
+            self.board[start_point['row'],start_point['col']:start_point['col']+ship] = 1
+
+        if direction == 'vertical':
+            for c in range (self.col_size):
+                for r in range (self.row_size - ship + 1):
+                    if 1 not in [self.board[i][c] for i in range(r,r+ship)]:
+                        locations.append({'row' : r, 'col': c})
+            start_point = locations[random.randint(0,len(locations)-1)]                    
+            self.board[start_point['row']:start_point['row']+ship,start_point['col']] = 1
+                                
+        print(f"Ship Placed at Row: {start_point['row']+1}, Column: {start_point['col']+1}, Direction: {direction}, Length: {ship}")
+            
 
 
 

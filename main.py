@@ -3,4 +3,6 @@ import classes
 game = classes.Battleships()
 
 game.draw()
-game.place_ships()
+for ship in game.ships.values():
+    game.place_ships(ship)
+game.draw()
