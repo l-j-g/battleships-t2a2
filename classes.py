@@ -2,6 +2,8 @@ import random
 import numpy as np
 import pdb
 import socket
+from art import * 
+
 
 class Battleships:
     def __init__(self) -> None:
@@ -9,6 +11,8 @@ class Battleships:
         self.col_size = 8 #number of columns
         self.elements = self.row_size * self.col_size
         self.num_ships = 3
+        self.ready = False
+        self.player = 1
         # self.max_ship_size = 4 
         # self.min_ship_size = 1
         # self.num_turns = 39
@@ -27,6 +31,8 @@ class Battleships:
 
     def draw(self):
 
+        tprint('BATTLESHIPS')
+        print("     " + Format.underline +"Player 1:" + Format.end)
         print("  " +" ".join(str(x) for x in range(1, self.col_size + 1))) # Column Coodinates (Numbers)
 
         count = 1
@@ -64,13 +70,15 @@ class Battleships:
             self.board[start_point['row']:start_point['row']+ship,start_point['col']] = 1
                                 
         print(f"Ship Placed at Row: {start_point['row']+1}, Column: {start_point['col']+1}, Direction: {direction}, Length: {ship}")
-        return
+        self.ready = True
+        return 
             
 class Connect:
     def __init__(self, address = "127.0.0.1", port = 65432):
         
         self.address = address
         self.port = 65432
+        self.connection_established = False
 
     def server(self):
         # Create Socket: 
@@ -79,11 +87,11 @@ class Connect:
         # because sever need to bind and listen
         server_socket.bind((self.address, self.port))
         server_socket.listen()
-        print("Listening on 127.0.0.1...")
+        print("Waiting for opponent...")
 
         # once the client requests, we need to accept it: 
         connection, address = server_socket.accept()
-        connection_established = True
+        self.connection_established = True
         print("Connection Established")
 
         while True:
@@ -113,3 +121,10 @@ class Connect:
         received_message = client_socket.recv(1024)
 
         print(repr(received_message))
+
+    def send(self,message):
+        pass
+
+class Format:
+    end = '\033[0m'
+    underline = '\033[4m'
