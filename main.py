@@ -6,6 +6,7 @@ def cls():
 
 game = Battleships()
 server = Connect()
+
 while server.connection_established == False:
     print("Client or Server?")
     c_o_s = input()
@@ -21,15 +22,17 @@ while server.connection_established == False:
         game.player = 1
         cls()
 
-game.draw()
-print("How would you like to place your ships?: (M)anual or (A)utomatic")
-placement = input()
-if placement[0].lower() == 'a':
-    for ship in game.ships.values():
-        game.place_ships(ship)
-game.draw()
+while game.ships_placed == False:
+    print("How would you like to place your ships?: (M)anual or (A)utomatic")
+    placement = input()
+    if placement[0].lower() == 'a':
+        for ship in game.ships.values():
+            game.place_ships(ship)
+        game.ships_placed = True
+
 
 
 
 while game.ready == True:
+    game.draw()
     guess = input("Enter the Co-ordinates of your attack: (Row, Column)")

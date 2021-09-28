@@ -12,6 +12,7 @@ class Battleships:
         self.elements = self.row_size * self.col_size
         self.num_ships = 3
         self.ready = False
+        self.ships_placed = False
         self.player = 1
 
         self.board = np.zeros((self.col_size, self.row_size))
@@ -31,10 +32,16 @@ class Battleships:
 
         tprint('BATTLESHIPS')
         print("     " + Format.underline +"Player 1:" + Format.end)
-        print("  " +" ".join(str(x) for x in range(1, self.col_size + 1))) # Column Coodinates (Numbers)
+        Battleships.print_board(self,self.board)
+        print("     " + Format.underline +"Opponent:" + Format.end)
+        Battleships.print_board(self,self.opp_board)
+        return
 
+    def print_board(self,board): 
+
+        print("  " +" ".join(str(x) for x in range(1, self.col_size + 1))) # Column Coodinates (Numbers)
         count = 1
-        for row in self.board:
+        for row in board:
             print(str(count), end = "" )
             count = count + 1
             for element in row:
@@ -45,24 +52,7 @@ class Battleships:
                     element = ' x'
                     print(element, end="")
             print("")   
-
-        print("     " + Format.underline +"Player 1:" + Format.end)
-        print("  " +" ".join(str(x) for x in range(1, self.col_size + 1))) # Column Coodinates (Numbers)
-        count = 1
-        for row in self.opp_board:
-            print(str(count), end = "" )
-            count = count + 1
-            for element in row:
-                if element == 0:
-                    element = ' ?'
-                    print(element,end="")
-                if element == 1:
-                    element = ' x'
-                    print(element, end="")
-            print("")   
         return
-
-
 
     def place_ships(self,ship):
         direction = 'horizontal' if random.randint(0, 1) == 0 else 'vertical'
