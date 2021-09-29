@@ -2,7 +2,10 @@ import random
 import numpy as np
 import pdb
 import socket
+import sys
 from art import * 
+import traceback
+from _thread import *
 
 
 class Battleships:
@@ -17,6 +20,8 @@ class Battleships:
 
         self.board = np.zeros((self.col_size, self.row_size))
         self.opp_board = np.zeros((self.col_size, self.row_size))
+        self.health = 17
+        self.opp_health = 17
 
 
         self.ships = {
@@ -74,65 +79,71 @@ class Battleships:
             start_point = locations[random.randint(0,len(locations)-1)]                    
             self.board[start_point['row']:start_point['row']+ship,start_point['col']] = 1
                                 
-        print(f"Ship Placed at Row: {start_point['row']+1}, Column: {start_point['col']+1}, Direction: {direction}, Length: {ship}")
-        self.ready = True
         return 
+
+    def take_turn(self):
+        
+        if self.player == 1: 
+                guess = input("Enter the Co-ordinates of your attack: (Row, Column)")
+                server.send(guess)
+        if self.player == 2: 
+                print("Waiting for Opponent to take their turn...")
             
 class Connect:
     def __init__(self, address = "127.0.0.1", port = 65432):
-        
+       
+        # create socket 
+        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM) #
         self.address = address
         self.port = 65432
         self.connection_established = False
         self.role = ""
 
-
     def set_up(self):
 
         if self.role == 'server': 
-             # Create Socket: 
-            server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM) #
-
             try:
                 # because sever need to bind and listen
-                server_socket.bind((self.address, self.port))
-                server_socket.listen()
-                print("Waiting for opponent...")
-            except:
-                print("Error")
-
-            # once the client requests, we need to accept it: 
-            connection, address = server_socket.accept()
-            self.connection_established = True
-            print("Connection Established")
-
-            server_socket.close()
+                with self.socket as s:
+                    s.bind((self.address, self.port))
+                    s.listen()
+                    print("Waiting for opponent...")
+                    # once the client requests, we need to accept it: 
+                    self.connection, self.address = s.accept()
+            except Exception as e:
+                print(e)
+                print(traceback.format_exc())
+                sys.exit(1)
 
         if self.role == 'client':
 
-            # create socket 
-            client_socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-
             # client connects to a listening sever 
             try:
-                client_socket.connect((self.address, self.port))
-                self.connection_established = True
-                print("Connection Established")
-            except:
-                print("Error: No Server Found")
+                with self.socket as s:
+                    self.socket.connect((self.address, self.port))
+            except Exception as e: 
+                print(e)
 
-            """message_to_send = "Test"
-
-            # send the message
-            client_socket.sendall(bytes(message_to_send, "utf-8"))
-
-            # get a response 
-            received_message = client_socket.recv(1024)
-
-            print(repr(received_message)) """
-
+                
     def send(self,message):
-        pass
+        try:
+            if self.role =='server':
+                self.connection.sendall(bytes(message, "utf-8"))
+        except Exception as e:
+            print(e)
+            print(traceback.format_exc())
+            sys.exit(1)
+
+
+    def recieve(self):
+        while True: 
+            received_message = self.socket.recv(1024)
+            if not received_message: 
+                break
+        return received_message
+
+    def close_connection(self):
+            self.socket.close()
 
 class Format:
     end = '\033[0m'
