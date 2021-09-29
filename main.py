@@ -29,12 +29,10 @@ while server.connection_established == False:
         server.set_up()
         game.player = 1
 
-    server.connection_established = True
 
 
 while game.health > 0 or game.opp_health > 0:
-    game.take_turn()
+    game.draw()
+    game.take_turn(server)
         
 
-
-game.draw()
