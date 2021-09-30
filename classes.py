@@ -70,7 +70,6 @@ class Battleships:
 						locations.append({'row' : r, 'col': c})
 			start_point = locations[random.randint(0,len(locations)-1)]                    
 			self.board[start_point['row'],start_point['col']:start_point['col']+ship] = 1
-
 		if direction == 'vertical':
 			for c in range (self.col_size):
 				for r in range (self.row_size - ship + 1):
@@ -82,7 +81,9 @@ class Battleships:
 		return 
 
 	def take_turn(self,server):
+		#pdb.set_trace()
 		guess = []
+		print(f"You are Player {self.player}")
 		if self.turn % 2 == 1:
 			if self.player == 1: 
 				guess.append(self.get_row())
@@ -90,6 +91,7 @@ class Battleships:
 				server.send(guess)
 			if self.player == 2: 
 				print("Waiting for Opponent to take their turn...")
+				server.recieve()
 		if self.turn % 2 == 0:
 			if self.player == 2: 
 				guess.append(self.get_row())
@@ -97,6 +99,8 @@ class Battleships:
 				server.send(guess)
 			if self.player == 1: 
 				print("Waiting for Opponent to take their turn...")
+				server.recieve()
+
 		self.turn += 1
 		self.draw()
 
@@ -108,7 +112,7 @@ class Battleships:
 					return guess - 1
 				else:
 					print("Selection out of range")
-			except:
+			except ValueError:
 				print("Enter a number. ")
 
 	def get_col(self):
@@ -119,8 +123,9 @@ class Battleships:
 					return guess - 1
 				else:
 					print("Selection out of range")
-			except:
+			except ValueError:
 				print("Enter a number. ")
+
 class Connect:
 	def __init__(self, address = "127.0.0.1", port = 65432):
 	   
@@ -131,18 +136,21 @@ class Connect:
 		self.connection_established = False
 		self.role = ""
 
+		with self.socket as s:
+			
+
+
 	def set_up(self):
 
 		if self.role == 'server': 
 			try:
 				# because sever need to bind and listen
-				with self.socket as s:
-					s.bind((self.address, self.port))
-					s.listen()
-					print("Waiting for opponent...")
-					# once the client requests, we need to accept it: 
-					self.connection, self.address = s.accept()
-					self.connection_established = True
+				self.socket.bind((self.address, self.port))
+				self.socket.listen()
+				print("Waiting for opponent...")
+				# once the client requests, we need to accept it: 
+				self.connection, self.address = self.socket.accept()
+				self.connection_established = True
 			except Exception as e:
 				print(e)
 				print(traceback.format_exc())
@@ -152,9 +160,8 @@ class Connect:
 
 			# client connects to a listening sever 
 			try:
-				with self.socket as s:
-					self.socket.connect((self.address, self.port))
-					self.connection_established = True
+				self.socket.connect((self.address, self.port))
+				self.connection_established = True
 			except Exception as e: 
 				print("No Server Found")
 				self.connection_established = False
@@ -172,22 +179,25 @@ class Connect:
 			print(traceback.format_exc())
 			sys.exit(1)
 
-
 	def recieve(self):
 		try:
-
-			if self.role =='server':
-				self.connection.sendall(bytes(message, "utf-8"))
-			if self.role == 'client':
-    			while True: 
-					received_message = self.socket.recv(1024)
-					if not received_message: 
+			if self.role == "server":
+				while True:
+					message = self.connection.recv(1024)
+					print(message)
+			if self.role == "client":
+				pdb.set_trace()
+				while True:
+					message = self.socket.recv(1024)
+					print(message)
+					if not message:
 						break
-			return received_message
+			return message
 		except Exception as e:
 			print(e)
 			print(traceback.format_exc())
 			sys.exit(1)
+
 
 	def close_connection(self):
 			self.socket.close()
