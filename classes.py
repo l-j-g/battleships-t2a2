@@ -16,6 +16,7 @@ class Battleships:
 		self.ready = False
 		self.ships_placed = False
 		self.player = ""
+		self.connection_established = False
 
 		self.board = np.zeros((self.col_size, self.row_size))
 		self.opp_board = np.zeros((self.col_size, self.row_size))
@@ -80,77 +81,57 @@ class Battleships:
 								
 		return 
 
-	def take_turn(self,server):
-		#pdb.set_trace()
-		guess = []
-		print(f"You are Player {self.player}")
-		if self.turn % 2 == 1:
-			if self.player == 1: 
-				guess.append(self.get_row())
-				guess.append(self.get_col())
-				server.send(guess)
-			if self.player == 2: 
-				print("Waiting for Opponent to take their turn...")
-				server.recieve()
-		if self.turn % 2 == 0:
-			if self.player == 2: 
-				guess.append(self.get_row())
-				guess.append(self.get_col())
-				server.send(guess)
-			if self.player == 1: 
-				print("Waiting for Opponent to take their turn...")
-				server.recieve()
 
-		self.turn += 1
-		self.draw()
-
-	def get_row(self):
+	def get_input(self, direction):
 		while True:
 			try:
-				guess = int(input("Row Guess: "))
+				guess = int(input(f"{direction} Guess: "))
 				if guess in range(1, self.row_size +1):
-					return guess - 1
+					guess - 1
+					return guess 
 				else:
 					print("Selection out of range")
 			except ValueError:
 				print("Enter a number. ")
 
-	def get_col(self):
-		while True:
-			try:
-				guess = int(input("Column Guess: "))
-				if guess in range(1, self.row_size +1):
-					return guess - 1
-				else:
-					print("Selection out of range")
-			except ValueError:
-				print("Enter a number. ")
+	def check(self,attack):
+		if self.board[attack[0],attack[1]] == 1:
+			# hit
+			self.board[attack[0],attack[1]] = 2
 
-class Connect:
-	def __init__(self, address = "127.0.0.1", port = 65432):
+		if self.board[attack[0],attack[1]] == 0:
+			# miss 
+    			
+
+
+class Connection:
+	def __init__(self, role, game, address = "127.0.0.1", port = 65432):
 	   
 		# create socket 
 		self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM) #
 		self.address = address
-		self.port = 65432
-		self.connection_established = False
-		self.role = ""
+		self.port = port 
+		self.role = role
+		self.game = game
 
-		with self.socket as s:
+		with self.socket as server:
+			self.set_up(server)
+			while game.health > 0 or game.opp_health > 0:
+				self.game.draw()	
+				self.take_turn(server)
+
 			
-
-
-	def set_up(self):
-
+	def set_up(self,server):
 		if self.role == 'server': 
 			try:
 				# because sever need to bind and listen
-				self.socket.bind((self.address, self.port))
-				self.socket.listen()
+				server.bind((self.address, self.port))
+				server.listen()
 				print("Waiting for opponent...")
 				# once the client requests, we need to accept it: 
-				self.connection, self.address = self.socket.accept()
-				self.connection_established = True
+				self.connection, self.address = server.accept()
+				self.game.connection_established = True
+				self.game.player = 1
 			except Exception as e:
 				print(e)
 				print(traceback.format_exc())
@@ -160,35 +141,38 @@ class Connect:
 
 			# client connects to a listening sever 
 			try:
-				self.socket.connect((self.address, self.port))
-				self.connection_established = True
+				server.connect((self.address, self.port))
+				self.game.connection_established = True
+				self.game.player = 2
 			except Exception as e: 
 				print("No Server Found")
 				self.connection_established = False
 
 
+
 				
-	def send(self,message):
+	def send(self,s,message):
 		try:
 			if self.role =='server':
-				self.connection.sendall(bytes(message, "utf-8"))
+				self.connection.sendall(bytes(message))
 			if self.role == 'client':
-				self.socket.sendall(bytes(message, "utf-8"))
+				s.sendall(bytes(message))
 		except Exception as e:
 			print(e)
 			print(traceback.format_exc())
 			sys.exit(1)
 
-	def recieve(self):
+	def recieve(self,s):
 		try:
 			if self.role == "server":
 				while True:
-					message = self.connection.recv(1024)
+					message = list(self.connection.recv(1024))
 					print(message)
+					if not message:
+						break
 			if self.role == "client":
-				pdb.set_trace()
 				while True:
-					message = self.socket.recv(1024)
+					message = list(s.recv(1024))
 					print(message)
 					if not message:
 						break
@@ -202,6 +186,35 @@ class Connect:
 	def close_connection(self):
 			self.socket.close()
 
+	def take_turn(self,server):
+		guess = []
+		print("Connection Established!... Lets Get Started")
+		print(f"You are Player {self.game.player}")
+
+		if self.game.turn % 2 == 1:
+			if self.game.player == 1: 
+				guess.append(self.game.get_input("Row"))
+				guess.append(self.game.get_input("Column"))
+				self.send(server,guess)
+			if self.game.player == 2: 
+				print("Waiting for Opponent to take their turn...")
+				self.recieve(server)
+
+		if self.game.turn % 2 == 0:
+			if self.game.player == 2: 
+				guess.append(self.game.get_input("Row"))
+				guess.append(self.game.get_input("Column"))
+				server.send(server,guess)
+			if self.game.player == 1: 
+				print("Waiting for Opponent to take their turn...")
+
+				attack = self.recieve(server)
+				self.game.check(attack)
+
+		self.game.turn += 1
+		self.game.draw()
 class Format:
 	end = '\033[0m'
 	underline = '\033[4m'
+	red = 
+
