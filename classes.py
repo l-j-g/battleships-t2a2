@@ -57,6 +57,8 @@ class Battleships:
 				if element == 1:
 					element = ' x'
 					print(element, end="")
+				if element == 2:
+					element = Format.red + ' x' + Format.reset
 			print("")   
 		return
 
@@ -101,6 +103,7 @@ class Battleships:
 
 		if self.board[attack[0],attack[1]] == 0:
 			# miss 
+			pass
     			
 
 
@@ -213,8 +216,9 @@ class Connection:
 
 		self.game.turn += 1
 		self.game.draw()
+
 class Format:
 	end = '\033[0m'
 	underline = '\033[4m'
-	red = 
-
+	red = '\u001b[31m'
+	reset = '\u001b[0m'
