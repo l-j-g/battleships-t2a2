@@ -7,6 +7,7 @@ from art import *
 import traceback
 from _thread import *
 from ast import literal_eval
+import functions
 
 
 class Battleships:
@@ -36,7 +37,7 @@ class Battleships:
 
 
 	def draw(self):
-
+		functions.cls()
 		tprint('BATTLESHIPS')
 		print("    " + Format.underline +"Your Fleet:" + Format.end)
 		Battleships.print_board(self,self.board)
@@ -52,15 +53,19 @@ class Battleships:
 			print(str(count), end = "" )
 			count = count + 1
 			for element in row:
+				# empty
 				if element == 0:
 					element = ' ~'
 					print(element,end="")
+				# ship present
 				if element == 1:
 					element = Format.green + ' x' + Format.reset
 					print(element, end="")
+				# short fired - hit
 				if element == 2:
 					element = Format.red + ' x' + Format.reset
 					print(element,end="")
+				# shot fired - missed
 				if element == 3:
 					element = ' o'
 					print(element, end="")
@@ -82,28 +87,38 @@ class Battleships:
 				print("Enter a number. ")
 
 	def check(self,attack):
-		print(f"Your Opponent fired at Row: {attack[0]+1}, Column {attack[1]+1}...", end="")
 		if self.board[attack[0],attack[1]] == 1:
 			# hit
-			print("and HIT!")
 			self.board[attack[0],attack[1]] = 2
 			return 1
-
+			# miss
 		if self.board[attack[0],attack[1]] == 0:
-			print("and Missed!!")
 			self.board[attack[0],attack[1]] = 3
 			return 0
-				
+
+
 	def update_opponent_board(self,guess):
 		print(guess)
 		if guess[2]== 0:
 			print("Bummer, you missed")
-			self.opp_board[guess[0],guess[1]] = 2
+			self.opp_board[guess[0],guess[1]] = 3
 
 		if guess[2] == 1:
 			print("Gottem")
-			self.opp_board[guess[0],guess[1]] = 1
+			self.opp_board[guess[0],guess[1]] = 2
 	
+	def print_turn_text(self, attack):
+		print(f"Your Opponent fired at Row: {attack[0]+1}, Column {attack[1]+1}...", end="")
+
+		if self.board[attack[0],attack[1]] == 1:
+			print("and HIT!")
+
+		if self.board[attack[0],attack[1]] == 0:
+			print("and Missed!!")
+
+		print(f"You have {self.health} ships left!")
+		print(f"Your opponent has {self.opp_health} ships left!")
+
 	def manual_placement(self):
 		for ship in self.ships.values():
 
@@ -197,11 +212,7 @@ class Connection:
 				print("No Server Found")
 				self.connection_established = False
 
-
-
-				
 	def send(self,s,message):
-		print(f"Sending {message}")
 		try:
 			if self.role =='server':
 				self.connection.sendall(bytes(message,'utf-8'))
@@ -219,14 +230,12 @@ class Connection:
 					message = self.connection.recv(1024)
 					if not message:
 						break
-					print(f"Got {message}")
 					return message.decode('utf-8')
 			if self.role == "client":
 				while True:
 					message = s.recv(1024)
 					if not message:
 						break
-					print(f"Got {message}")
 					return message.decode('utf-8')
 		except Exception as e:
 			print(e)
@@ -253,7 +262,6 @@ class Connection:
 				self.send(server,repr(guess))
 				result = self.recieve(server)
 
-				print(result)
 
 				result = literal_eval(result)
 				self.game.update_opponent_board(result)
@@ -261,10 +269,13 @@ class Connection:
 			if self.game.player == 2: 
 				print("Waiting for Opponent to take their turn...")
 				attack = literal_eval(self.recieve(server))
-				print(attack)
+				# check if the attack was a hit or miss and update the board
 				result = self.game.check(attack)
+
+				
+
+				# send the result to your opponent
 				attack.append(result)
-				print(attack)
 				self.send(server,repr(attack))
 
 		if self.game.turn % 2 == 0:
