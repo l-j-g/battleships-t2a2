@@ -8,7 +8,12 @@ import traceback
 from _thread import *
 from ast import literal_eval
 import functions
-
+'''
+TODO: 
+	- Commenting 
+	- Manual Ship Placement
+	- 
+'''
 
 class Battleships:
 	"""
@@ -26,8 +31,6 @@ class Battleships:
 		self.connection_established = False
 		self.board = np.zeros((self.col_size, self.row_size))
 		self.opp_board = np.zeros((self.col_size, self.row_size))
-		self.health = 17
-		self.opp_health = 17
 		self.turn = 1
 
 		self.ships = {
@@ -37,6 +40,9 @@ class Battleships:
 			"submarine" : 3,
 			"destroyer" : 2
 		}
+
+		self.health = sum(self.ships.values())
+		self.opp_health = self.health
 
 
 	def draw(self):
@@ -188,12 +194,18 @@ class Connection:
 			while self.game.ships_placed == False:
 				self.place_ships(server)
 
-			while self.game.health > 0 or self.game.opp_health > 0:
+			while self.game.health > 0 and self.game.opp_health > 0:
 				if self.game.turn == 1:
 					self.game.draw()	
 					print("Connection Established!... Lets Get Started")
 					print(f"You are Player {self.game.player}")
 				self.take_turn(server)
+			if self.game.health > 0:
+				print("Game Over - Congratulations, You Won")
+
+			if self.game.health == 0:
+				print("Game Over - Bummer, You Lost")
+
 
 	def set_up(self,server):
 		if self.role == 'server': 
@@ -330,8 +342,6 @@ class Connection:
 
 		self.game.turn += 1
 		self.game.draw()
-		pdb.set_trace()
-		print(attack)
 		self.game.print_turn_text(attack)
 
 class Format:
@@ -341,4 +351,4 @@ class Format:
 	reset = '\u001b[0m'
 	blink = '\33[5m'
 	green = '\u001b[32m'
-	blue = '\u001b[34;1m' 
+	blue = '\u001b[34m'
