@@ -11,21 +11,24 @@ import functions
 
 
 class Battleships:
-	def __init__(self) -> None:
-		self.row_size = 8 #number of rows
-		self.col_size = 8 #number of columns
-		self.elements = self.row_size * self.col_size
-		self.ready = False
+	"""
+ 	A class to represent a game of battlehips
+	"""
+	def __init__(self):
+		"""
+		Constructs all of the nessecary attributes of the Battleships Object
+		"""
+		self.row_size = 8  # number of rows
+		self.col_size = 8  # number of columns
+
 		self.ships_placed = False
 		self.player = ""
 		self.connection_established = False
-
 		self.board = np.zeros((self.col_size, self.row_size))
 		self.opp_board = np.zeros((self.col_size, self.row_size))
 		self.health = 17
 		self.opp_health = 17
 		self.turn = 1
-
 
 		self.ships = {
 			"carrier" : 5,
@@ -37,17 +40,24 @@ class Battleships:
 
 
 	def draw(self):
+		""" Clears the terminal screen, prints title display boards."""
 		functions.cls()
 		tprint('BATTLESHIPS')
-		print("    " + Format.underline +"Your Fleet:" + Format.end)
+		print("   " + Format.underline + "Player " +str(self.player) + "(You):" + Format.end)
 		Battleships.print_board(self,self.board)
 		print("     " + Format.underline +"Opponent:" + Format.end)
 		Battleships.print_board(self,self.opp_board)
 		return
 
 	def print_board(self,board): 
+		""" 
+  		Prints a visual representation of a battleships board (numpy darray)
 
-		print("  " +" ".join(str(x) for x in range(1, self.col_size + 1))) # Column Coodinates (Numbers)
+		Args:
+			board (numpy.darray): numpy darray object representation of ship placements
+		"""
+
+		print("  " +" ".join(str(x) for x in range(1, self.col_size + 1))) # Print rolumn Coodinates (Numbers)
 		count = 1
 		for row in board:
 			print(str(count), end = "" )
@@ -67,7 +77,7 @@ class Battleships:
 					print(element,end="")
 				# shot fired - missed
 				if element == 3:
-					element = ' o'
+					element = Format.blue + ' o' + Format.reset
 					print(element, end="")
 			print("")   
 		return
@@ -75,6 +85,15 @@ class Battleships:
 
 
 	def get_input(self, direction):
+		"""
+		Takes user input 
+
+		Args:
+			direction (string): direction of input to recieve (row or collumn)
+
+		Returns:
+			int: selection of coordinate in direction.
+		"""
 		while True:
 			try:
 				guess = int(input(f"{direction} Guess: "))
@@ -87,8 +106,17 @@ class Battleships:
 				print("Enter a number. ")
 
 	def check(self,attack):
+		"""[summary]
+
+		Args:
+			attack ([type]): [description]
+
+		Returns:
+			[type]: [description]
+		"""
 		if self.board[attack[0],attack[1]] == 1:
 			# hit
+			self.health -= 1
 			self.board[attack[0],attack[1]] = 2
 			return 1
 			# miss
@@ -100,24 +128,23 @@ class Battleships:
 	def update_opponent_board(self,guess):
 		print(guess)
 		if guess[2]== 0:
-			print("Bummer, you missed")
 			self.opp_board[guess[0],guess[1]] = 3
 
 		if guess[2] == 1:
-			print("Gottem")
 			self.opp_board[guess[0],guess[1]] = 2
+			self.opp_health -= 1
 	
 	def print_turn_text(self, attack):
-		print(f"Your Opponent fired at Row: {attack[0]+1}, Column {attack[1]+1}...", end="")
+		print(f"Player fired at Row: {attack[0]+1}, Column {attack[1]+1}...", end="")
 
-		if self.board[attack[0],attack[1]] == 1:
-			print("and HIT!")
+		if attack[2] == 1:
+    			print("and HIT!")
 
-		if self.board[attack[0],attack[1]] == 0:
+		if attack[2] == 0:
 			print("and Missed!!")
 
-		print(f"You have {self.health} ships left!")
-		print(f"Your opponent has {self.opp_health} ships left!")
+		print(f"You have {self.health} sea people remaining!")
+		print(f"Your opponent has {self.opp_health} sea people left!")
 
 	def manual_placement(self):
 		for ship in self.ships.values():
@@ -161,9 +188,38 @@ class Connection:
 			while self.game.ships_placed == False:
 				self.place_ships(server)
 
-			while game.health > 0 or game.opp_health > 0:
-				self.game.draw()	
+			while self.game.health > 0 or self.game.opp_health > 0:
+				if self.game.turn == 1:
+					self.game.draw()	
+					print("Connection Established!... Lets Get Started")
+					print(f"You are Player {self.game.player}")
 				self.take_turn(server)
+
+	def set_up(self,server):
+		if self.role == 'server': 
+			try:
+				# because sever need to bind and listen
+				server.bind((self.address, self.port))
+				server.listen()
+				print("Waiting for opponent...")
+				# once the client requests, we need to accept it: 
+				self.connection, self.address = server.accept()
+				self.game.connection_established = True
+				self.game.player = 1
+			except Exception as e:
+				print(e)
+				print(traceback.format_exc())
+				sys.exit(1)
+		if self.role == 'client':
+
+			# client connects to a listening sever 
+			try:
+				server.connect((self.address, self.port))
+				self.game.connection_established = True
+				self.game.player = 2
+			except Exception as e: 
+				print("No Server Found")
+				self.connection_established = False
 
 	def place_ships(self,server):
 		print("How would you like to place your ships?: (M)anual or (A)utomatic")
@@ -185,33 +241,6 @@ class Connection:
 		if response == 'recieved':
 			self.game.ships_placed = True	
      			
-	def set_up(self,server):
-		if self.role == 'server': 
-			try:
-				# because sever need to bind and listen
-				server.bind((self.address, self.port))
-				server.listen()
-				print("Waiting for opponent...")
-				# once the client requests, we need to accept it: 
-				self.connection, self.address = server.accept()
-				self.game.connection_established = True
-				self.game.player = 1
-			except Exception as e:
-				print(e)
-				print(traceback.format_exc())
-				sys.exit(1)
-
-		if self.role == 'client':
-
-			# client connects to a listening sever 
-			try:
-				server.connect((self.address, self.port))
-				self.game.connection_established = True
-				self.game.player = 2
-			except Exception as e: 
-				print("No Server Found")
-				self.connection_established = False
-
 	def send(self,s,message):
 		try:
 			if self.role =='server':
@@ -247,24 +276,23 @@ class Connection:
 			self.socket.close()
 
 	def take_turn(self,server):
-		guess = []
-		result= ""
-		attack = ""
 
-		if self.game.turn == 1:
-			print("Connection Established!... Lets Get Started")
-			print(f"You are Player {self.game.player}")
 
 		if self.game.turn % 2 == 1:
 			if self.game.player == 1: 
-				guess.append(self.game.get_input("Row"))
-				guess.append(self.game.get_input("Column"))
+				while True:
+					guess = []
+					guess.append(self.game.get_input("Row"))
+					guess.append(self.game.get_input("Column"))
+
+					if self.game.opp_board[guess[0],guess[1]] != 0:
+						print("You have already fired at that location")
+					else:
+						break
+        
 				self.send(server,repr(guess))
-				result = self.recieve(server)
-
-
-				result = literal_eval(result)
-				self.game.update_opponent_board(result)
+				attack = literal_eval(self.recieve(server))
+				self.game.update_opponent_board(attack)
 
 			if self.game.player == 2: 
 				print("Waiting for Opponent to take their turn...")
@@ -272,31 +300,39 @@ class Connection:
 				# check if the attack was a hit or miss and update the board
 				result = self.game.check(attack)
 
-				
-
 				# send the result to your opponent
 				attack.append(result)
 				self.send(server,repr(attack))
 
 		if self.game.turn % 2 == 0:
 			if self.game.player == 2: 
-				guess.append(self.game.get_input("Row"))
-				guess.append(self.game.get_input("Column"))
-				self.send(server,repr(guess))
 
-				response = literal_eval(self.recieve(server))
-				self.game.update_opponent_board(response)
+				while True:
+					guess = []
+					guess.append(self.game.get_input("Row"))
+					guess.append(self.game.get_input("Column"))
+					if self.game.opp_board[guess[0],guess[1]] != 0:
+						print("You have already fired at that location")
+					else:
+						break
+
+				self.send(server,repr(guess))
+				attack = literal_eval(self.recieve(server))
+				self.game.update_opponent_board(attack)
 
 			if self.game.player == 1: 
 				print("Waiting for Opponent to take their turn...")
 
 				attack = literal_eval(self.recieve(server))
-				response = self.game.check(attack)
-				attack.append(response)
+				result = self.game.check(attack)
+				attack.append(result)
 				self.send(server,repr(attack))
 
 		self.game.turn += 1
 		self.game.draw()
+		pdb.set_trace()
+		print(attack)
+		self.game.print_turn_text(attack)
 
 class Format:
 	end = '\033[0m'
@@ -305,3 +341,4 @@ class Format:
 	reset = '\u001b[0m'
 	blink = '\33[5m'
 	green = '\u001b[32m'
+	blue = '\u001b[34;1m' 
