@@ -12,7 +12,10 @@ import functions
 TODO: 
 	- Commenting 
 	- Manual Ship Placement
-	- 
+	- Readme
+	- Flowchart
+	- Turn Text Player Identifier
+	- Server Set Up
 '''
 
 class Battleships:
