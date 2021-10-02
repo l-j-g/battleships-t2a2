@@ -29,5 +29,12 @@ To install the necessary dependencies, navigate to your type src folder and exec
 
 ## Control Flow:
 
+At a high level the control flow of the program can be described as follows: 
+
+- init battleship class 
+- input server or client 
+- initalise connection between server and client 
+- place ships on to the board
+-  
+
 ### Classes 
-    

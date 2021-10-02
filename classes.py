@@ -5,9 +5,9 @@ import socket
 import sys
 from art import * 
 import traceback
-from _thread import *
 from ast import literal_eval
 import functions
+import os 
 '''
 TODO: 
 	- Commenting 
@@ -15,6 +15,9 @@ TODO:
 	- Readme
 	- Flowchart
 '''
+
+def cls():
+    os.system('cls' if os.name=='nt' else 'clear')
 
 class Battleships:
 	"""
@@ -48,7 +51,7 @@ class Battleships:
 
 	def draw(self):
 		""" Clears the terminal screen, prints title display boards."""
-		functions.cls()
+		cls()
 		tprint('BATTLESHIPS')
 		print("   " + Format.underline + "Player " +str(self.player) + "(You):" + Format.end)
 		Battleships.print_board(self,self.board)
