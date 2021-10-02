@@ -6,12 +6,11 @@ import sys
 from art import * 
 import traceback
 from ast import literal_eval
-import functions
 import os 
+import pdb
 '''
 TODO: 
 	- Commenting 
-	- Manual Ship Placement
 	- Readme
 	- Flowchart
 '''
@@ -38,11 +37,11 @@ class Battleships:
 		self.turn = 1
 
 		self.ships = { # length of different ships 
-			"carrier" : 5,
-			"battleship" : 4,
-			"cruiser" : 3,
-			"submarine" : 3,
-			"destroyer" : 2
+			"Carrier" : 5,
+			"Battleship" : 4,
+			"Cruiser" : 3,
+			"Submarine" : 3,
+			"Destroyer" : 2
 		}
 
 		self.health = sum(self.ships.values())
@@ -106,7 +105,7 @@ class Battleships:
 		"""
 		while True:
 			try:
-				guess = int(input(f"{direction} Guess: "))
+				guess = int(input(f"Enter {direction}: "))
 				if guess in range(1, self.row_size +1):
 					guess = guess - 1
 					return guess 
@@ -192,8 +191,36 @@ class Battleships:
 				start_point = locations[random.randint(0,len(locations)-1)]                    
 				self.board[start_point['row']:start_point['row']+ship,start_point['col']] = 1
 		return 
+	
+	def manual_placement(self):
+		for ship in self.ships:
+			ship_length = self.ships[ship]
+			self.draw()
+			while True:
+				print(f"Enter the direction to place your {ship} (length: {ship_length})")
+				direction = input("(H)orizontal or (V)ertical: ")
+				if direction[0].lower() == 'h' or direction[0].lower() == 'v':
+					direction = direction[0]
+					break
+				else:
+					print("Invalid selection. Try again.")
+			while True:
+				print(f"Enter start point of your {ship} (length: {ship_length}): ")
+				row = self.get_input("Row")
+				col = self.get_input("Column")
+				if direction == 'h':
+					
+					if 1 not in self.board[row][col:col+ship_length] and col+ship_length < self.col_size+1:
+						self.board[row,col:col+ship_length] = 1
+						break
+				if direction =='v':
+					if 1 not in self.board[row:row+ship_length,col] and row+ship_length < self.col_size+1:
+						self.board[row:row+ship_length,col] = 1
+						break
+				else:
+					print("The ship cannot be placed in that location.")
 
-
+      
 
 
 class Connection:
@@ -212,25 +239,28 @@ class Connection:
 		self.game = game
 
 		with self.socket as server:
-			self.set_up(server)
+			try: 
+				self.set_up(server)
 
-			if self.game.connection_established == False:
-				return
+				if self.game.connection_established == False:
+					return
 
-			while self.game.ships_placed == False:
-				self.place_ships(server)
+				while self.game.ships_placed == False:
+					self.place_ships(server)
 
-			while self.game.health > 0 and self.game.opp_health > 0:
-				if self.game.turn == 1:
-					self.game.draw()	
-					print("Connection Established!... Lets Get Started")
-					print(f"You are Player {self.game.player}")
-				self.take_turn(server)
-			if self.game.health > 0:
-				print("Game Over - Congratulations, You Won")
+				while self.game.health > 0 and self.game.opp_health > 0:
+					if self.game.turn == 1:
+						self.game.draw()	
+						print("Connection Established!... Lets Get Started")
+						print(f"You are Player {self.game.player}")
+					self.take_turn(server)
+				if self.game.health > 0:
+					print("Game Over - Congratulations, You Won")
 
-			if self.game.health == 0:
-				print("Game Over - Bummer, You Lost")
+				if self.game.health == 0:
+					print("Game Over - Bummer, You Lost")
+			except KeyboardInterrupt:
+				server.close()
 
 
 	def set_up(self,server):
@@ -245,8 +275,8 @@ class Connection:
 				self.connection, self.address = server.accept()
 				self.game.connection_established = True
 			except Exception as e:
-				print(e)
-				print(traceback.format_exc())
+				print("That port/address doesnt seems to be avalible at the momment")
+				print("Try again later.")
 				sys.exit(1)
 		if self.role == 'client':
 
@@ -259,12 +289,13 @@ class Connection:
 				print("Restarting...")
 				return
 
-
 	def place_ships(self,server):
 		print("How would you like to place your ships?: (M)anual or (A)utomatic")
 		placement = input()
 		if placement[0].lower() == 'a':
 			self.game.automatic_placement()
+		if placement[0].lower() == 'm':
+			self.game.manual_placement()
 
 		if self.role == 'server':
 			print("Waiting for opponent to place their ships...")

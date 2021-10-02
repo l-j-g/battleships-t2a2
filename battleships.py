@@ -10,6 +10,7 @@ while game.connection_established == False:
     while True:
         try:
             address = ipaddress.ip_address(input("Which address to Use? (Default: 127.0.0.1): ") or "127.0.0.1")
+            address = str(address)
             break
         except ValueError:
             print("Enter an IP address: ")
@@ -21,16 +22,15 @@ while game.connection_established == False:
             print("Enter a number.")
     while True:
         try:
-            print("Will you be the Client or Server?")
-            c_o_s = input()
+            c_o_s = input("Will you be the (C)lient or (S)erver?: ")
             if c_o_s[0].lower() == 'c':
                 game.player = 2
-                server = Connection("client",game)
+                server = Connection("client",game,address,port)
                 break
 
             if c_o_s[0].lower() == 's':
                 game.player = 1
-                server = Connection('server',game)
+                server = Connection('server',game,address,port)
                 break
             else:
                 raise ValueError
