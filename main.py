@@ -19,11 +19,21 @@ while game.connection_established == False:
             break
         except ValueError:
             print("Enter a number.")
-    print(" Will you be the Client or Server?")
-    c_o_s = input()
-    if c_o_s[0].lower() == 'c':
-        game.player = 2
-        server = Connection("client",game)
+    while True:
+        try:
+            print("Will you be the Client or Server?")
+            c_o_s = input()
+            if c_o_s[0].lower() == 'c':
+                game.player = 2
+                server = Connection("client",game)
+                break
 
-    if c_o_s[0].lower() == 's':
-        server = Connection('server',game)
+            if c_o_s[0].lower() == 's':
+                game.player = 1
+                server = Connection('server',game)
+                break
+            else:
+                raise ValueError
+            
+        except ValueError:
+            print("Invalid Selection.")

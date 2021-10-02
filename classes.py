@@ -14,8 +14,6 @@ TODO:
 	- Manual Ship Placement
 	- Readme
 	- Flowchart
-	- Turn Text Player Identifier
-	- Server Set Up
 '''
 
 class Battleships:
@@ -36,7 +34,7 @@ class Battleships:
 		self.opp_board = np.zeros((self.col_size, self.row_size))
 		self.turn = 1
 
-		self.ships = {
+		self.ships = { # length of different ships 
 			"carrier" : 5,
 			"battleship" : 4,
 			"cruiser" : 3,
@@ -115,13 +113,15 @@ class Battleships:
 				print("Enter a number. ")
 
 	def check(self,attack):
-		"""[summary]
-
+		"""
+ 		Checks to see if input co-ordinates correspondes with the location of a ship on the players board.
+		Updates the values of the board and the health depending on the result. 
+		
 		Args:
-			attack ([type]): [description]
+			attack (list): co-ordinates of a recieved attack
 
 		Returns:
-			[type]: [description]
+			int: returns either 1 or 0 to indiciate if the attack was a hit or miss
 		"""
 		if self.board[attack[0],attack[1]] == 1:
 			# hit
@@ -135,7 +135,13 @@ class Battleships:
 
 
 	def update_opponent_board(self,guess):
-		print(guess)
+		"""
+ 		Takes a list that describes the co-ordinates of an attack and result and updates
+  		the corresponding opponent health and board values.
+
+		Args:
+			guess (list): A list corresponding to the result an attack made with structure [row, column, result].
+		"""
 		if guess[2]== 0:
 			self.opp_board[guess[0],guess[1]] = 3
 
@@ -144,7 +150,13 @@ class Battleships:
 			self.opp_health -= 1
 	
 	def print_turn_text(self, attack):
-		print(f"Player fired at Row: {attack[0]+1}, Column {attack[1]+1}...", end="")
+		"""
+		Takes a list that describes the co-ordinates of an attack and result and displays the outcome of the turn to a user.
+
+		Args:
+			attack (type): A list corresponding to the result an attack made with structure [row, column, result].
+		"""
+		print(f"Player {((self.turn+1)%2)+1} fired at Row: {attack[0]+1}, Column {attack[1]+1}...", end="")
 
 		if attack[2] == 1:
     			print("and HIT!")
@@ -155,7 +167,7 @@ class Battleships:
 		print(f"You have {self.health} sea people remaining!")
 		print(f"Your opponent has {self.opp_health} sea people left!")
 
-	def manual_placement(self):
+	def automatic_placement(self):
 		for ship in self.ships.values():
 
 			direction = 'horizontal' if random.randint(0, 1) == 0 else 'vertical'
@@ -182,6 +194,11 @@ class Battleships:
 
 
 class Connection:
+	""" A class to establish two way connection  for a game of battleships 
+	
+ 
+  	"""
+
 	def __init__(self, role, game, address = "127.0.0.1", port = 65432):
 	   
 		# create socket 
@@ -193,6 +210,9 @@ class Connection:
 
 		with self.socket as server:
 			self.set_up(server)
+
+			if self.game.connection_established == False:
+				return
 
 			while self.game.ships_placed == False:
 				self.place_ships(server)
@@ -211,16 +231,16 @@ class Connection:
 
 
 	def set_up(self,server):
+
 		if self.role == 'server': 
 			try:
-				# because sever need to bind and listen
+				# sever needs to bind and listen
 				server.bind((self.address, self.port))
 				server.listen()
 				print("Waiting for opponent...")
 				# once the client requests, we need to accept it: 
 				self.connection, self.address = server.accept()
 				self.game.connection_established = True
-				self.game.player = 1
 			except Exception as e:
 				print(e)
 				print(traceback.format_exc())
@@ -231,16 +251,17 @@ class Connection:
 			try:
 				server.connect((self.address, self.port))
 				self.game.connection_established = True
-				self.game.player = 2
 			except Exception as e: 
-				print("No Server Found")
-				self.connection_established = False
+				print("ERROR: No valid server was found with the given configuration...")
+				print("Restarting...")
+				return
+
 
 	def place_ships(self,server):
 		print("How would you like to place your ships?: (M)anual or (A)utomatic")
 		placement = input()
 		if placement[0].lower() == 'a':
-			self.game.manual_placement()
+			self.game.automatic_placement()
 
 		if self.role == 'server':
 			print("Waiting for opponent to place their ships...")
@@ -249,11 +270,11 @@ class Connection:
 			
 
 		if self.role == 'client':
-			self.send(server,'recieved')
+			self.send(server,'placed')
 			print("Waiting for opponent to place their ships...")
 			response = self.recieve(server)
 
-		if response == 'recieved':
+		if response == 'placed':
 			self.game.ships_placed = True	
      			
 	def send(self,s,message):
@@ -287,67 +308,43 @@ class Connection:
 			sys.exit(1)
 
 
-	def close_connection(self):
-			self.socket.close()
-
 	def take_turn(self,server):
+		# oscillates between (1, 2)
+		if (self.game.turn+1)%2+1 == self.game.player:
+			while True:
+				guess = []
+				guess.append(self.game.get_input("Row"))
+				guess.append(self.game.get_input("Column"))
 
-
-		if self.game.turn % 2 == 1:
-			if self.game.player == 1: 
-				while True:
-					guess = []
-					guess.append(self.game.get_input("Row"))
-					guess.append(self.game.get_input("Column"))
-
-					if self.game.opp_board[guess[0],guess[1]] != 0:
-						print("You have already fired at that location")
-					else:
-						break
+				if self.game.opp_board[guess[0],guess[1]] != 0:
+					print("You have already fired at that location")
+				else:
+					break
         
-				self.send(server,repr(guess))
-				attack = literal_eval(self.recieve(server))
-				self.game.update_opponent_board(attack)
+			self.send(server,repr(guess))
+			attack = literal_eval(self.recieve(server))
+			self.game.update_opponent_board(attack)
 
-			if self.game.player == 2: 
-				print("Waiting for Opponent to take their turn...")
-				attack = literal_eval(self.recieve(server))
-				# check if the attack was a hit or miss and update the board
-				result = self.game.check(attack)
+		# oscillates between (2, 1) to dictate turn action
+		if (self.game.turn)%2+1 == self.game.player:
+			print("Waiting for Opponent to take their turn...")
+			attack = literal_eval(self.recieve(server))
+			# check if the attack was a hit or miss and update the board
+			result = self.game.check(attack)
 
-				# send the result to your opponent
-				attack.append(result)
-				self.send(server,repr(attack))
+			attack.append(result)
+			self.send(server,repr(attack))
 
-		if self.game.turn % 2 == 0:
-			if self.game.player == 2: 
-
-				while True:
-					guess = []
-					guess.append(self.game.get_input("Row"))
-					guess.append(self.game.get_input("Column"))
-					if self.game.opp_board[guess[0],guess[1]] != 0:
-						print("You have already fired at that location")
-					else:
-						break
-
-				self.send(server,repr(guess))
-				attack = literal_eval(self.recieve(server))
-				self.game.update_opponent_board(attack)
-
-			if self.game.player == 1: 
-				print("Waiting for Opponent to take their turn...")
-
-				attack = literal_eval(self.recieve(server))
-				result = self.game.check(attack)
-				attack.append(result)
-				self.send(server,repr(attack))
-
-		self.game.turn += 1
 		self.game.draw()
 		self.game.print_turn_text(attack)
+		self.game.turn += 1
+
+def close_connection(self):
+        self.socket.close()
 
 class Format:
+	""" A class to represent 
+	"""
 	end = '\033[0m'
 	underline = '\033[4m'
 	red = '\u001b[31m'
