@@ -38,6 +38,10 @@ Players then take turn to guess the location of each others battleships one elem
 
 When either player has guessed the location of all of the other players battleships the game is over.
 
+To launch the game navigate the the installation direction and execute the following command: 
+
+`python battleships.py`
+
 ### Input 
 
 Input is taken from the user during three distinct processes:
