@@ -7,6 +7,7 @@ import traceback
 from ast import literal_eval
 import os
 
+
 def cls():
     ''' Function used to clear the terminal screen'''
     os.system('cls' if os.name == 'nt' else 'clear')
@@ -188,11 +189,13 @@ class Battleships:
         print(f"Your opponent has {self.opp_health} sea people left!")
 
     def automatic_placement(self):
-        """This function will automatically automatically set the placement of the users ships.
+        """This function will automatically automatically
+        set the placement of the users ships.
         """
         for ship in self.ships.values():
             # direction is randomly chosen as either horizontal or vertical
-            direction = 'horizontal' if random.randint(0, 1) == 0 else 'vertical'
+            direction = ('horizontal' if random.randint(0, 1) == 0
+                         else 'vertical')
             # a list of all possible valid locations will be created.
             locations = []
 
@@ -255,12 +258,14 @@ class Battleships:
                 col = self.get_input("Column")
                 if direction == 'h':
                     # check if no other ship is present and if the ship fits
-                    if 1 not in self.board[row][col:col + ship_length] and col + ship_length < self.col_size+1:
+                    if 1 not in (self.board[row][col:col + ship_length]
+                                 and col + ship_length < self.col_size+1):
                         self.board[row, col:col+ship_length] = 1
                         break
                 if direction == 'v':
                     # check if no other ship is present and if the ship fits
-                    if 1 not in self.board[row:row + ship_length, col] and row+ship_length < self.col_size+1:
+                    if 1 not in (self.board[row:row + ship_length, col]
+                                 and row+ship_length < self.col_size+1):
                         self.board[row:row + ship_length, col] = 1
                         break
                 else:
