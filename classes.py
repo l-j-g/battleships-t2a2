@@ -452,11 +452,11 @@ given configuration...")
             server (Socket): the socket to which the connection is bound
         """
         attack = []
-        guess = []
         # oscillates between (1, 2) as each turn progresss
         if (self.game.turn+1) % 2 + 1 == self.game.player:
             # player is the aggressor
             while True:
+                guess = []
                 # get input for row to attack
                 guess.append(self.game.get_input("Row"))
                 # get input for column to attack
