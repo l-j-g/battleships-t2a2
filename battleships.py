@@ -37,3 +37,5 @@ while game.connection_established == False:
             
         except ValueError:
             print("Invalid Selection.")
+        except IndexError:
+            print("Invalid Selection.")
