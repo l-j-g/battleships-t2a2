@@ -1,40 +1,48 @@
 # Battleships-t2a2
 
-Battleships is a multi-player text based game written in python demonstrating development capabilities with networking, use of classes and object oriented programming.
+Battleships is a CLI based game written in Python that can be played over a network. This application demonstrates development capabilities with networking, use of classes and object oriented programming.
 
-## Installation: 
+## Screenshot:
+
+![Screenshot of battleships application](scrot.png)
+
+## Features:
+- Command line interface with a graphical representation of game boards
+- Error handling through input sanitisation and program logic
+- Multiplayer game wth networking functionality
+- Automatic or manual ship placement
+
+## Installation:
 
 To download the source code of the application execute the following command at your command line prompt:
 `git clone https://github.com/l-j-g/battleships-t2a2.git`
-
 
 ## Dependencies / Packages Used:
 This program runs on Python. To install Python, check out https://installpython3.com/'
 
 Before starting the application ensure that all of the system environment requirements have been met.
 
-To install the necessary dependencies, navigate to your type src folder and execute the following command in your command line prompt:
+To install the necessary dependencies, navigate to your the root folder and execute the following command in your command line prompt:
 `pip install -r requirements.txt`
 
-*Battleships* requires the following python packages to be installed.
+*Battleships* requires the following Python packages to be installed:
 
-- `random` : python standard library, used to randomly generate numbers 
-- `numpy` : external python package, used to create an array and manipulate data that represents a battleships game board  
-- `pdb` : python standard library, used for debugging 
-- `socket`: python standard library, for networking and establishing connection between server and client. 
-- `sys` : python standard library, used to exit the program.
-- `art` : external python package, used to display game title.
-- `traceback` : python standard library, used to display debugging information upon error.
-- `literal_eval` from asl - python standard library, used to evalute strings communicated over network connection as a Python expression.
-- `os` - python standard library, used to evoke a function that will clear the terminal screen, regardless of users operating system.
-- `ipaddress` - python standard library, used to check if a string is a valid ip address.
+- `random` : Python standard library, used to randomly generate numbers 
+- `numpy` : external Python package, used to create an array and manipulate data that represents a battleships game board  
+- `pdb` : Python standard library, used for debugging 
+- `socket`: Python standard library, for networking and establishing connection between server and client. 
+- `sys` : Python standard library, used to exit the program.
+- `art` : external Python package, used to display game title.
+- `traceback` : Python standard library, used to display debugging information upon error.
+- `literal_eval` : from asl - Python standard library, used to evaluate strings communicated over network connection as a Python expression.
+- `os` : Python standard library, used to evoke a function that will clear the terminal screen, regardless of users operating system.
+- `ipaddress` : Python standard library, used to check if a string is a valid ip address.
+
 
 ## How to play:
-Battleships is a two player game where players place up to 5 ships of different lengths on a 9x9 grid.
+Battleships is a two player game where each player places up to 5 ships of different lengths on a 9x9 grid.
 
-Players place all of their battleships on the board and do not disclose to the other player the location of their battleships.  
-
-Players then take turn to guess the location of each others battleships one element at a time.  
+Once all ships have been placed, players then take turn to guess the location of each others battleships one element at a time.  
 
 When either player has guessed the location of all of the other players battleships the game is over.
 
@@ -42,17 +50,17 @@ To launch the game navigate the the installation direction and execute the follo
 
 `python battleships.py`
 
-### Input 
+### Input:
 
 Input is taken from the user during three distinct processes:
 
-- Setting up connection: port, address and role
+- Setting up connection: port, address and role (client or server)
 - Placement of ships: row and column 
 - Co-ordinates of an attack: row and column
 
-### Output
+### Output:
 
-Output to the user is provided by `draw()` function of the `Battleships` object. which visually represents a `numpy` array of data according to the following legend:
+Output to the user is provided by `draw()` function of the `Battleships` object. The draw function visually represents a `numpy` array of data according to the following legend:
 
 | Logical           | Numerical | Visual    |
 |-------------------|-----------|-----------|
@@ -61,19 +69,13 @@ Output to the user is provided by `draw()` function of the `Battleships` object.
 | A damaged shit    | 2         | red `x`   |
 | A missed attack   | 3         | blue `o`  |
 
-### Error Handling
+### Error Handling:
 
-Errors are handled through the program by type and logic checking input. 
+This application implements error handling through input sanitisation and program logic.
 
-E.g is the input of a guess of type int? and, are the provided inputs within the dimensions of the game board. 
+Checking ensures that the input is of the correct type and that the inputs are logically correct in the context of the input (e.g. that the co-ordinates of a players turn are within the dimensions of the game board.)
 
-As well as a turn based control flow that ensures two way communication before the game is progress. 
-
-E.g. During each turn one player will enter co-ordinates of their attack and send these co-ordinates to the other player. 
-
-The program will check if the co-ordinates of the attack correspond to the location of where the players ships are placed and will respond the player who send the attack to indicate if the attack was a hit or a miss.  
-
-Until this two-way communication is completed each turn the game cannot progress. 
+Turn based control flow ensures two way communication is completed each turn before the game is progressed. During each turn one player will enter co-ordinates of their attack and send these co-ordinates to the other player. The application will check the co-ordinates of the attack and will respond to the player who sent the attack to indicate the result of the turn.
 
 ## Control Flow:
 
@@ -84,16 +86,16 @@ At a high level the control flow of the program can be described as follows:
 - place ships on to the board
 - while ships remain on both players boards, players take turns guessing the location of enemy ships.
 
-The programs control (without error checking for brevity) flow is described in the attached flowchart. 
+The application control flow (excluding error checking for brevity) is detailed in the flowchart below.
 
 The different processes of the program are colour coded as follows: 
-- `green` : relating to battleship class functions and variables, used to provide input and output to the user of the application.
-- `blue` : relating to the placement of ships on the game board
-- `yellow` relating to Communication class functions and variables, used for two-way communication between a server and a client.
+- `green` : battleship class functions and variables, used to provide input and output to the user of the application.
+- `blue` : placement of ships on the game board
+- `yellow` networking class functions and variables, used for two-way communication between a server and a client.
 
 ![Battleships flowchart, showing control flow](./flowchart.svg)
 
-### Classes 
+## Classes:
 `classes.py` utilises three different Python classes. 
 
 - Battleship class: to represent one players game of Battleships
