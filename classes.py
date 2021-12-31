@@ -176,8 +176,9 @@ class Battleships:
             attack (type): A list corresponding to the result an attack
             made with structure [row, column, result].
         """
-        print(f"Player {((self.turn+1)%2)+1} fired at Row: \
-{attack[0]+1}, Column: {attack[1]+1}...", end="")
+        print(
+            f"Player {((self.turn+1)%2)+1} fired at Row: {attack[0]+1}, Column: {attack[1]+1}...", end=""
+            )
 
         if attack[2] == 1:
             print("and HIT!")
@@ -235,13 +236,17 @@ class Battleships:
         """ A function to manually enter the coordinates for a players ships
         """
         # for each ship
+        import pdb
         for ship in self.ships:
+            direction = None
+            placement = None
             ship_length = self.ships[ship]
             # update the visual display after each ship is placed
             self.draw()
-            while True:
-                print(f"Enter the direction to place your {ship}\
-(length: {ship_length})")
+            while not direction:
+                print(
+                    f"Enter the direction to place your {ship} (length: {ship_length})"
+                    )
                 # input if the ship will be horizontal or vertical
                 direction = input("(H)orizontal or (V)ertical: ")
                 if direction[0].lower() == 'h' or direction[0].lower() == 'v':
@@ -249,27 +254,29 @@ class Battleships:
                     break
                 else:
                     print("Invalid selection. Try again.")
-            while True:
-                print(f"Enter start point of your {ship}\
-(length: {ship_length}): ")
+                    direction = None
+            while not placement:
+#                pdb.set_trace()
+                print(
+                    f"Enter start point of your {ship} (length: {ship_length}): "
+                    )
                 # input the start row
                 row = self.get_input("Row")
                 # input the start column
                 col = self.get_input("Column")
                 if direction == 'h':
                     # check if no other ship is present and if the ship fits
-                    if 1 not in (self.board[row][col:col + ship_length]
-                                 and col + ship_length < self.col_size+1):
+                    if 1 not in (self.board[row][col:col + ship_length]) and (col + ship_length < self.col_size+1):
                         self.board[row, col:col+ship_length] = 1
                         break
                 if direction == 'v':
                     # check if no other ship is present and if the ship fits
-                    if 1 not in (self.board[row:row + ship_length, col]
-                                 and row+ship_length < self.col_size+1):
+                    if 1 not in (self.board[row:row + ship_length, col]) and (row + ship_length < self.col_size+1):
                         self.board[row:row + ship_length, col] = 1
                         break
                 else:
                     print("The ship cannot be placed in that location.")
+                    placement = None
 
 
 class Connection:
@@ -354,8 +361,7 @@ class Connection:
                 self.connection, self.address = server.accept()
                 self.game.connection_established = True
             except Exception:
-                print("That port/address doesnt seems to\
- be avaliable at the momment")
+                print("That port/address doesnt seems to be avaliable at the moment")
                 print("Try again later.")
                 sys.exit(1)
         if self.role == 'client':
@@ -365,8 +371,7 @@ class Connection:
                 server.connect((self.address, self.port))
                 self.game.connection_established = True
             except Exception:
-                print("ERROR: No valid server was found with the \
-given configuration...")
+                print("ERROR: No valid server was found with the given configuration...")
                 print("Restarting...")
                 return
 
